@@ -1,5 +1,10 @@
+> thegraph is letting you down/too hard to understand or you just want a backup.  Try Ourgraph, an easy way to manage local graph-nodes in AWS:
+
 # Stand-alone graph-node in aws
 ### Using terraform infrastructure-as-code
+
+thegraph is letting you down/too hard to understand or you just want a backup.  Try Ourgraph, an easy way to manage local graph-nodes in AWS:
+
 
 This directory will grow into everything needed to deploy a cluster of stand-alone graph nodes in an aws account using terraform
 Note that there is a lot of terraform here. If you use intelliJ or vscode, install the terraform plugin and your life will be WAY better!
