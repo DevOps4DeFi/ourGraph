@@ -1,4 +1,4 @@
-> thegraph is letting you down/too hard to understand or you just want a backup.  Try Ourgraph, an easy way to manage local graph-nodes in AWS:
+> Is Thegraph letting you down/too hard to understand/too expensive or you just want a backup?  Try ourGraph, an easy way to manage local graph-nodes in AWS.
 
 # Stand-alone graph-node in aws
 ### Using terraform infrastructure-as-code
