@@ -1,0 +1,61 @@
+#!/bin/bash
+## a userdata script to bring an amazon linux 2 instance up and running as a local graph node with badger subgraph
+#
+#
+## Setup Yarn pkg repos
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+apt update
+apt install -y awscli
+apt install -y jq # JSON parser for sh/bash
+apt install -y git
+apt install -y docker.io
+apt install -y libsecret-1-dev ## needed for graph-cli
+apt install -y yarn
+ln -s /usr/bin/nodejs /usr/bin/node ## see https://github.com/nodejs/node-v0.x-archive/issues/3911
+apt install -y npm
+systemctl start docker
+systemctl enable docker
+### Set ethnode_url to the url of a eth node that will be used based on an ssm parameter
+export AWS_DEFAULT_REGION=${region} ## REMOVE to detemplatize
+export ETHNODE_URL=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
+## Install yarn
+
+## Install docker compose
+curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+## Setup and install graph-node
+mkdir /graph-node ### will run everything from here
+cd /graph-node
+
+git clone https://github.com/graphprotocol/graph-node
+cd graph-node/docker
+mv docker-compose.yml docker-compose.yml.orig
+sed "s|mainnet:http://host.docker.internal:8545|mainnet:$ETHNODE_URL|g" docker-compose.yml.orig > docker-compose.yml
+sleep 10 #this seems neccessary on a t2.micro
+/usr/local/bin/docker-compose up -d
+### This system should now be running as a graph node
+### Now we need to install some graphs
+
+### install subgraphs
+cd /graph-node
+mkdir -p subgraphs/badger-subgraph
+cd subgraphs
+for url in ${github_graph_urls}
+do
+git clone $url
+## get everything after the last / in the url to get the directory name and remove the trailing .git if it's there
+clean_url=`echo $url | sed s/\.git$//`
+dirname=$${clean_url##*/} #note $${} simpy escapes terraform interpolation and resolves the same without the second $
+GRAPH_PATH=`echo $clean_url | sed s#.*://[^/]*/##` ##drop the http://..../ in the url to leave us with Project/Repo
+### fighting with yarn
+cd $dirname
+yarn
+yarn codegen
+yarn create-local $dirname
+yarn deploy-local $dirname
+cd ../
+done
+
