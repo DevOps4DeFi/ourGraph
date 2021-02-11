@@ -99,7 +99,7 @@ resource "aws_security_group" "graph-node" {
 ##TODO figure out a way to provide different graphs to userdata, right now this always grabs the badger one
 ## could accept a list of name/repo tuples and parse a more complex userdata
 data "template_file" "userdata" {
-  template = file("templates/userdata.sh.template")
+  template = file("${path.module}/templates/userdata.sh.template")
   vars = {
     graphnode_url_ssm_arn = local.eth_node_ssm_name
     region                = var.region
