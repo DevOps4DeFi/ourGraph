@@ -1,3 +1,5 @@
+### Not used if run as submodule
+
 provider "aws" {
   region = local.region
 }
