@@ -19,6 +19,7 @@ systemctl start docker
 systemctl enable docker
 ### Set ethnode_url to the url of a eth node that will be used based on an ssm parameter
 export AWS_DEFAULT_REGION=${region} ## REMOVE to detemplatize
+
 export ETHNODE_URL=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
 ## Install yarn
 
