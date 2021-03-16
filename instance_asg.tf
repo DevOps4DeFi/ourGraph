@@ -40,10 +40,18 @@ data "aws_iam_policy_document" "graphnode-ssm-parmas" {
   }
 }
 
-resource "aws_iam_role_policy" "graph-node-instance-profile" {
-  name   = "graph-node-instance-policy"
+resource "aws_iam_policy" "graph-node-ecs" {
+  name_prefix   = "graphnode"
   role   = aws_iam_role.instance_role.id
   policy = data.aws_iam_policy_document.graphnode-ssm-parmas.json
+}
+resource "aws_iam_role_policy_attachment" "graphnode_ssm_agent" {
+  role       = aws_iam_role.instance_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+resource "aws_iam_role_policy_attachment" "graph_node_ecs" {
+  policy_arn = aws_iam_policy.graph-node-ecs.arn
+  role = aws_iam_role.instance_role.id
 }
 
 ###TODO break out the rules into aws_security_group_rule statements each with their own description
