@@ -5,6 +5,7 @@ variable "ethnode_url_ssm_parameter_name" {
   type        = string
   description = "the name of an ssm parameter that holds the URL of the ethnode we will use"
 }
+
 variable "app_name" {
   type        = string
   description = "The name of the application that will be used for tagging."

@@ -40,10 +40,18 @@ data "aws_iam_policy_document" "graphnode-ssm-parmas" {
   }
 }
 
-resource "aws_iam_role_policy" "graph-node-instance-profile" {
-  name   = "graph-node-instance-policy"
+resource "aws_iam_policy" "graph-node-ecs" {
+  name_prefix   = "graphnode"
   role   = aws_iam_role.instance_role.id
   policy = data.aws_iam_policy_document.graphnode-ssm-parmas.json
+}
+resource "aws_iam_role_policy_attachment" "graphnode_ssm_agent" {
+  role       = aws_iam_role.instance_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+resource "aws_iam_role_policy_attachment" "graph_node_ecs" {
+  policy_arn = aws_iam_policy.graph-node-ecs.arn
+  role = aws_iam_role.instance_role.id
 }
 
 ###TODO break out the rules into aws_security_group_rule statements each with their own description
@@ -179,7 +187,6 @@ resource "aws_autoscaling_group" "autopilot_worker" {
   vpc_zone_identifier  = local.subnets
   target_group_arns    = [aws_lb_target_group.graphnode-graphql.arn]
   launch_configuration = aws_launch_configuration.graphnode.id
-
   lifecycle {
     ignore_changes        = [desired_capacity]
     create_before_destroy = true
