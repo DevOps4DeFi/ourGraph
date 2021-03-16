@@ -179,7 +179,6 @@ resource "aws_autoscaling_group" "autopilot_worker" {
   vpc_zone_identifier  = local.subnets
   target_group_arns    = [aws_lb_target_group.graphnode-graphql.arn]
   launch_configuration = aws_launch_configuration.graphnode.id
-
   lifecycle {
     ignore_changes        = [desired_capacity]
     create_before_destroy = true
