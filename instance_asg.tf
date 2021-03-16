@@ -42,7 +42,6 @@ data "aws_iam_policy_document" "graphnode-ssm-parmas" {
 
 resource "aws_iam_policy" "graph-node-ecs" {
   name_prefix   = "graphnode"
-  role   = aws_iam_role.instance_role.id
   policy = data.aws_iam_policy_document.graphnode-ssm-parmas.json
 }
 resource "aws_iam_role_policy_attachment" "graphnode_ssm_agent" {
