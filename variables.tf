@@ -23,10 +23,10 @@ variable "region" {
   type        = string
   description = "The aws region to deploy into."
 }
-variable "public_subnet_ids" {
+variable "subnet_ids" {
   type        = list(string)
   default     = null
-  description = "A list of public subnets in the vpc, if null use default vpc."
+  description = "a list of subnet ids to launch the instance in, recommend private."
 }
 variable "vpc_id" {
   type        = string
@@ -50,3 +50,11 @@ variable "subgraph_github_repos" {
   description = "A list of http paths to one or more subgraph repos like [\"https:/https://github.com/Badger-Finance/badger-subgraph\"]"
 }
 
+variable "lb_https_listener_arn" {
+  type=string
+  description = "The arn to an https alb listener that will be used."
+}
+variable "lb_name" {
+  type=string
+  description = "The name of the  alb running the specified listener"
+}

@@ -1,5 +1,7 @@
 > Is Thegraph letting you down/too hard to understand/too expensive or you just want a backup?  Try ourGraph, an easy way to manage local graph-nodes in AWS.
 
+
+### readme is out of date and needs update.  Now requires DevOps4Defi/terraform-baseline or similar resources
 # Stand-alone graph-node in aws
 ### Using terraform infrastructure-as-code
 
