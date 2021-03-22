@@ -44,6 +44,8 @@ resource "aws_iam_policy" "graph-node-ecs" {
   name_prefix   = "graphnode"
   policy = data.aws_iam_policy_document.graphnode-ssm-parmas.json
 }
+
+
 resource "aws_iam_role_policy_attachment" "graphnode_ssm_agent" {
   role       = aws_iam_role.instance_role.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -110,7 +112,7 @@ data "template_file" "userdata" {
   vars = {
     graphnode_url_ssm_arn = local.eth_node_ssm_name
     region                = var.region
-    postgres_host = local.use_rds ? module.rds[0].this_db_instance_endpoint : "postgres"
+    postgres_host = local.use_rds ? module.rds[0].this_db_instance_address : "postgres"
     postgres_user = local.use_rds ? module.rds[0].this_db_instance_username : "graph-node"
     postgres_pass = aws_ssm_parameter.db_password.value
     postgres_db = local.use_rds ? module.rds[0].this_db_instance_name : "graph-node"

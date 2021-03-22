@@ -21,15 +21,7 @@ systemctl start docker
 systemctl enable docker
 ## Docker-compose environment vars for graph-node
 NODEURL=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
-export etherium=${network}:$NODEURL
-export postgres_host=${postgres_host}
-export postgres_user=${postgres_user}
-export postgres_pass=${postgres_pass}
-export postgres_db=${postgres_db}
-## Docker-compose environment vars for postgres
-export  POSTGRES_USER=${postgres_user}
-export POSTGRESS_PASSWORD=${postgres_pass}
-export POSTGRESS_DB=${postgres_db}
+
 ## Install docker compose
 curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -40,6 +32,54 @@ cd /graph-node
 
 git clone https://github.com/graphprotocol/graph-node
 cd graph-node/docker
+cat >> graphnode.env << EOF
+etherium=${network}:$NODEURL
+postgres_host=${postgres_host}
+postgres_user=${postgres_user}
+postgres_pass=${postgres_pass}
+postgres_db=${postgres_db}
+## Docker-compose environment vars for postgres
+POSTGRES_USER=${postgres_user}
+POSTGRESS_PASSWORD=${postgres_pass}
+POSTGRESS_DB=${postgres_db}
+EOF
+cat > docker-compose.yml <<EOF
+version: '3'
+services:
+  graph-node:
+    image: graphprotocol/graph-node
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      ipfs: 'ipfs:5001'
+      RUST_LOG: info
+
+    env_file:
+     - ./graphnode.env
+  ipfs:
+    image: ipfs/go-ipfs:v0.4.23
+    ports:
+      - '5001:5001'
+    volumes:
+      - ./data/ipfs:/data/ipfs
+  postgres:
+    image: postgres
+    ports:
+      - '5432:5432'
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
+    env_file:
+      - ./graphnode.env
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+EOF
+
 /usr/local/bin/docker-compose up -d
 ### This system should now be running as a graph node
 ### Now we need to install some graphs

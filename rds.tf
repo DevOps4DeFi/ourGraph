@@ -62,7 +62,7 @@ module "rds" {
   maintenance_window              = "Mon:00:00-Mon:03:00"
   backup_window                   = "03:00-06:00"
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
-
+  publicly_accessible = false
   backup_retention_period = 14
   skip_final_snapshot     = false
   deletion_protection     = false

@@ -64,13 +64,24 @@ variable "asg_details" {
 }
 
 
-variable "lb_https_listener_arn" {
+variable "graphql_lb_listener_arn" {
   type=string
-  description = "The arn to an https alb listener that will be used."
+  description = "The arn to an https alb listener that will be used for graphql requests."
 }
-variable "lb_name" {
+variable "index_lb_listener_arn" {
+  type=string
+  description = "The arn to an https alb listener that will be used to control the indexer (recommend private)."
+  default = null
+}
+variable "graph_lb_name" {
   type=string
   description = "The name of the  alb running the specified listener"
+}
+
+variable "index_lb_name" {
+  type=string
+  description = "The name of the  alb running the specified listener"
+  default=null
 }
 
 variable "tags" {
