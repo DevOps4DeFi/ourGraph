@@ -20,7 +20,7 @@ apt install -y npm
 systemctl start docker
 systemctl enable docker
 ## Docker-compose environment vars for graph-node
-NODEURL=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
+export NODEURL=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
 
 ## Install docker compose
 curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
@@ -30,10 +30,8 @@ chmod +x /usr/local/bin/docker-compose
 mkdir /graph-node ### will run everything from here
 cd /graph-node
 
-git clone https://github.com/graphprotocol/graph-node
-cd graph-node/docker
+cd graph-node
 cat >> graphnode.env << EOF
-etherium=${network}:$NODEURL
 postgres_host=${postgres_host}
 postgres_user=${postgres_user}
 postgres_pass=${postgres_pass}
@@ -43,6 +41,8 @@ POSTGRES_USER=${postgres_user}
 POSTGRESS_PASSWORD=${postgres_pass}
 POSTGRESS_DB=${postgres_db}
 EOF
+echo "ethereum=bsc:$NODEURL" >> graphnode.env
+
 cat > docker-compose.yml <<EOF
 version: '3'
 services:
