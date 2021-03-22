@@ -30,8 +30,16 @@ variable "vpc_id" {
   default     = null
   description = "The VPC to deploy into, if null use default vpc."
 }
-variable "rds_instance_type" {}
-variable "rds_storage_size" {}
+variable "rds_instance_type" {
+  type = string
+  default = null
+  description = "Specify an instance type like db.c5.large and instance size to use a separate rds db"
+}
+variable "rds_storage_size" {
+  type = number
+  default = null
+  description = "Max size in GB the rds db can grow to, if not specified use docker local postgres"
+}
 
 ##TODO add support for private subents
 variable "asg_details" {
