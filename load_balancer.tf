@@ -37,4 +37,5 @@ resource "aws_lb_listener_rule" "graphql" {
 resource "aws_autoscaling_attachment" "graphnode-graphql" {
   alb_target_group_arn   = aws_lb_target_group.graphql.arn
   autoscaling_group_name = aws_autoscaling_group.graphnode.name
+  depends_on = [aws_lb_listener_rule.graphql]
 }
