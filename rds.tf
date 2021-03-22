@@ -38,17 +38,17 @@ module "rds" {
   engine_version = "13.1"
   family               = "postgres13" # DB parameter group
   major_engine_version = "13"         # DB option group
-  instance_class       = "db.c5.xlarge"
+  instance_class       = var.rds_instance_type
 
   allocated_storage     = 20
-  max_allocated_storage = 600
+  max_allocated_storage = var.rds_storage_size
   storage_encrypted     = false
 
   # NOTE: Do NOT use 'user' as the value for 'username' as it throws:
   # "Error creating DB Instance: InvalidParameterValue: MasterUsername
   # user cannot be used as it is a reserved word used by the engine"
   name     = "graphprotocol"
-  username = "graph-hode"
+  username = "graph-node"
   password = aws_ssm_parameter.db_password.value
   port     = 5432
 
@@ -78,7 +78,6 @@ module "rds" {
       value = "utf8"
     }
   ]
-
   tags = merge(local.tags, {Name = "${var.app_name}-db"})
 
   db_option_group_tags = merge(local.tags, {Name = "${var.app_name}-db"})
