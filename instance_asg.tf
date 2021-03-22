@@ -111,6 +111,10 @@ data "template_file" "userdata" {
     graphnode_url_ssm_arn = local.eth_node_ssm_name
     region                = var.region
     github_graph_urls     = join(" ", var.subgraph_github_repos)
+    postgres_host = local.use_rds ? module.rds.this_db_instance_endpoint : "postgres"
+    postgres_user = local.use_rds ? module.rds.this_db_instance_username : "graph-node"
+    postgres_pass = aws_ssm_parameter.db_password.value
+    postgres_db = local.use_rds ? module.rds.this_db_instance_name : "graph-node"
   }
 }
 
@@ -186,6 +190,7 @@ resource "aws_autoscaling_group" "autopilot_worker" {
   vpc_zone_identifier  = local.subnets
   target_group_arns    = [aws_lb_target_group.graphnode-graphql.arn]
   launch_configuration = aws_launch_configuration.graphnode.id
+
   lifecycle {
     ignore_changes        = [desired_capacity]
     create_before_destroy = true

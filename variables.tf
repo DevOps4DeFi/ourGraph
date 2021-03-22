@@ -1,6 +1,3 @@
-## Note, to make things understandable, all code uses locals
-## All variables should be mapped to locals in vars_to_locals.tf
-## Other locals can go here too, or in-line with code when it makes sense
 variable "ethnode_url_ssm_parameter_name" {
   type        = string
   description = "the name of an ssm parameter that holds the URL of the ethnode we will use"
@@ -33,6 +30,9 @@ variable "vpc_id" {
   default     = null
   description = "The VPC to deploy into, if null use default vpc."
 }
+variable "rds_instance_type" {}
+variable "rds_storage_size" {}
+
 ##TODO add support for private subents
 variable "asg_details" {
   type = object({ instance_type = string, min_nodes = number, desired_nodes = number, max_nodes = number, storage_size_gb = number })
@@ -57,4 +57,12 @@ variable "lb_https_listener_arn" {
 variable "lb_name" {
   type=string
   description = "The name of the  alb running the specified listener"
+}
+
+variable "tags" {
+  default = {}
+}
+
+variable "ssm_root" {
+  default = "/DevOps4DeFi-"
 }

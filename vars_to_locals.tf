@@ -9,6 +9,11 @@ locals {
   min_nodes             = var.asg_details.min_nodes
   max_nodes             = var.asg_details.max_nodes
   desired_nodes         = var.asg_details.desired_nodes
+  tags                  = merge(var.tags, {
+    ManageBy = "terraform"
+    ModuleURL = "https://github.com:/DevOps4DeFi/ourGraph"
+    Name = "${var.app_name}-db"
+  })
 }
 
 
