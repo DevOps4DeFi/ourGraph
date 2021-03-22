@@ -1,29 +1,32 @@
 locals {
   use_rds = var.rds_instance_type != null && var.rds_storage_size != null
-  use_rds_count = use_rds == null ? 0:1
+  use_rds_count = local.use_rds == null ? 0:1
 }
 
 
 resource "random_pet" "db_password" {
   length = 5
 }
+resource "aws_ssm_parameter" "db_password" {
+  name = "${var.ssm_root}/ourGraph/${var.app_name}/-rds_password"
+  type = "String"
+  value = random_pet.db_password.id
+  lifecycle {ignore_changes = [value]}
+}
+
 resource "aws_security_group" "graph-node-db" {
   count = local.use_rds_count
   name_prefix = "ourGraphDB"
+  vpc_id = data.aws_vpc.vpc.id
   ingress {
     from_port = 5432
     protocol = "TCP"
     to_port = 5432
-    cidr_blocks = data.aws_vpc.vpc.cidr_block
+    cidr_blocks = [data.aws_vpc.vpc.cidr_block]
     #security_groups = [aws_security_group.graph-node.id] ## TODO move here for more security/harder debuggingi
   }
 }
-resource "aws_ssm_parameter" "db_password" {
-  name = "${var.ssm_root}/ourGraph/${var.app_name}/-rds_password"
-  type = "String"
-  value = random_pet.db_password.keepers
-  lifecycle {ignore_changes = [value]}
-}
+
 module "rds" {
   count= local.use_rds_count
   source  = "terraform-aws-modules/rds/aws"
@@ -48,13 +51,13 @@ module "rds" {
   # "Error creating DB Instance: InvalidParameterValue: MasterUsername
   # user cannot be used as it is a reserved word used by the engine"
   name     = "graphprotocol"
-  username = "graph-node"
+  username = "graphnode"
   password = aws_ssm_parameter.db_password.value
   port     = 5432
 
   multi_az               = false
-  subnet_ids             = var.subnet_ids[0]
-  vpc_security_group_ids = [aws_security_group.graph-node-db.id]
+  subnet_ids             = var.subnet_ids ## Used [0] as this is also where we run nodes, but if networking isn't a big deal could be multiple subnets in the az
+  vpc_security_group_ids = [aws_security_group.graph-node-db[0].id]
 
   maintenance_window              = "Mon:00:00-Mon:03:00"
   backup_window                   = "03:00-06:00"
@@ -65,7 +68,8 @@ module "rds" {
   deletion_protection     = false
   performance_insights_enabled          = true
   performance_insights_retention_period = 7
-  create_monitoring_role                = true
+  create_monitoring_role = var.rds_monitoring_role_arn == null
+  monitoring_role_arn = var.rds_monitoring_role_arn
   monitoring_interval                   = 60
 
   parameters = [

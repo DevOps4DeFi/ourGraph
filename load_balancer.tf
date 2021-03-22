@@ -1,6 +1,6 @@
 
-resource "aws_lb_target_group" "graphnode-graphql" {
-  name     = "graphnode-graphql"
+resource "aws_lb_target_group" "graphql" {
+  name_prefix     = "graph"
   port     = "8000"
   protocol = "HTTP"
   vpc_id   = local.vpc_id
@@ -15,6 +15,7 @@ resource "aws_lb_target_group" "graphnode-graphql" {
     path                = "/"
     port                = 8000
   }
+  lifecycle { create_before_destroy = true }
 }
 
 ## TODO ports 8020[JSON-RPC admin], 8030[IndexNode], 8040[Metrics] may need to be exposed to the internet
@@ -22,7 +23,7 @@ resource "aws_lb_target_group" "graphnode-graphql" {
 resource "aws_lb_listener_rule" "graphnode-graphql" {
   listener_arn = var.lb_https_listener_arn
   action {
-    target_group_arn = aws_lb_target_group.graphnode-graphql.arn
+    target_group_arn = aws_lb_target_group.graphql.arn
     type = "forward"
   }
   condition {

@@ -33,14 +33,23 @@ variable "vpc_id" {
 variable "rds_instance_type" {
   type = string
   default = null
-  description = "Specify an instance type like db.c5.large and instance size to use a separate rds db"
+  description = "Specify an instance type like db.m5.large and instance size to use a separate rds db"
 }
 variable "rds_storage_size" {
   type = number
   default = null
   description = "Max size in GB the rds db can grow to, if not specified use docker local postgres"
 }
-
+variable "rds_monitoring_role_arn" {
+  type = string
+  description = "the arn of an rds monitoring role if rds is in use, if none is provided, we will try to create one"
+  default = null
+}
+variable "network" {
+  type = string
+  description = "mainnet for eth, bsc for bsc"
+  default = "mainnet"
+}
 ##TODO add support for private subents
 variable "asg_details" {
   type = object({ instance_type = string, min_nodes = number, desired_nodes = number, max_nodes = number, storage_size_gb = number })
@@ -53,10 +62,7 @@ variable "asg_details" {
   }
   description = "How many of which instance type for the autoscailing group.  Defaults to 1 t2.micro for free tier."
 }
-variable "subgraph_github_repos" {
-  type = list(string)
-  description = "A list of http paths to one or more subgraph repos like [\"https:/https://github.com/Badger-Finance/badger-subgraph\"]"
-}
+
 
 variable "lb_https_listener_arn" {
   type=string
@@ -72,5 +78,5 @@ variable "tags" {
 }
 
 variable "ssm_root" {
-  default = "/DevOps4DeFi-"
+  default = "/DevOps4DeFi"
 }

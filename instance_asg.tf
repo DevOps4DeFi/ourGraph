@@ -110,11 +110,11 @@ data "template_file" "userdata" {
   vars = {
     graphnode_url_ssm_arn = local.eth_node_ssm_name
     region                = var.region
-    github_graph_urls     = join(" ", var.subgraph_github_repos)
-    postgres_host = local.use_rds ? module.rds.this_db_instance_endpoint : "postgres"
-    postgres_user = local.use_rds ? module.rds.this_db_instance_username : "graph-node"
+    postgres_host = local.use_rds ? module.rds[0].this_db_instance_endpoint : "postgres"
+    postgres_user = local.use_rds ? module.rds[0].this_db_instance_username : "graph-node"
     postgres_pass = aws_ssm_parameter.db_password.value
-    postgres_db = local.use_rds ? module.rds.this_db_instance_name : "graph-node"
+    postgres_db = local.use_rds ? module.rds[0].this_db_instance_name : "graph-node"
+    network = var.network
   }
 }
 
@@ -182,17 +182,28 @@ resource "aws_launch_template" "graphnode" {
 
 ##TODO write autoscaling policies once we understand application load
 ## Right now this asg basically will just keep local.desired_nodes running
-resource "aws_autoscaling_group" "autopilot_worker" {
+resource "aws_autoscaling_group" "graphnode" {
+  name = var.app_name
   desired_capacity     = local.desired_nodes
   max_size             = local.max_nodes
   min_size             = local.min_nodes
   health_check_type    = "EC2"
   vpc_zone_identifier  = local.subnets
-  target_group_arns    = [aws_lb_target_group.graphnode-graphql.arn]
+  target_group_arns    = [aws_lb_target_group.graphql.arn]
   launch_configuration = aws_launch_configuration.graphnode.id
 
+  tag {
+      key = "Name"
+      value = var.app_name
+      propagate_at_launch = true
+  }
+  tag {
+      key = "terraform_module_repo"
+      value = "https://github.com/DevOps4DeFi/ourGraph"
+      propagate_at_launch = true
+  }
+
   lifecycle {
-    ignore_changes        = [desired_capacity]
     create_before_destroy = true
   }
 }

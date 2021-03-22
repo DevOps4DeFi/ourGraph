@@ -20,7 +20,8 @@ apt install -y npm
 systemctl start docker
 systemctl enable docker
 ## Docker-compose environment vars for graph-node
-export etherium=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
+NODEURL=`aws ssm get-parameters --name ${graphnode_url_ssm_arn} | jq -r '.Parameters | .[] | .Value'` ## Change to a string with a url to templatize
+export etherium=${network}:$NODEURL
 export postgres_host=${postgres_host}
 export postgres_user=${postgres_user}
 export postgres_pass=${postgres_pass}
@@ -49,7 +50,7 @@ cd graph-node/docker
 cd /graph-node
 mkdir -p subgraphs/
 #cd subgraphs
-#for url in ${github_graph_urls}
+#for url in $${github_graph_urls} ##todo remove $$ from {} on uncomment
 #do
 #git clone $url
 ## get everything after the last / in the url to get the directory name and remove the trailing .git if it's there
