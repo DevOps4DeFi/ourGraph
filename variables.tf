@@ -68,7 +68,7 @@ variable "graphql_lb_listener_arn" {
   type=string
   description = "The arn to an https alb listener that will be used for graphql requests."
 }
-variable "index_lb_listener_arn" {
+variable "admin_lb_listener_arn" {
   type=string
   description = "The arn to an https alb listener that will be used to control the indexer (recommend private)."
   default = null
@@ -81,7 +81,6 @@ variable "graph_lb_name" {
 variable "index_lb_name" {
   type=string
   description = "The name of the  alb running the specified listener"
-  default=null
 }
 
 variable "tags" {

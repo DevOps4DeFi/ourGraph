@@ -40,9 +40,6 @@ services:
     image: postgres
     ports:
       - '5432:5432'
-
-
-
     command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
     env_file:
       - ./graphnode.env

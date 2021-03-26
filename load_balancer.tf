@@ -1,13 +1,13 @@
-locals {
-  build_index_listener = var.index_lb_name != null ? 1 : 0
-}
 data "aws_lb" "graph_alb" {
   name = var.graph_lb_name
 }
 data "aws_lb" "index_alb" {
-  count = local.build_index_listener
   name = var.index_lb_name
 }
+
+######
+### Port 8000 GRAPHQL
+######
 
 resource "aws_lb_target_group" "graphql" {
   name_prefix     = "gn-gql"
@@ -15,9 +15,9 @@ resource "aws_lb_target_group" "graphql" {
   protocol = "HTTP"
   vpc_id   = local.vpc_id
   tags = {
-    name = "graphql"
+    name = "${var.app_name}-graphql"
   }
-  health_check { ##TODO figure out a better healthcheck maybe getting data from the monitoring/management ports
+  health_check {
     healthy_threshold   = 3
     unhealthy_threshold = 10
     timeout             = 5
@@ -26,9 +26,6 @@ resource "aws_lb_target_group" "graphql" {
     port                = 8000
   }
 }
-
-## TODO ports 8020[JSON-RPC admin], 8030[IndexNode], 8040[Metrics] may need to be exposed to the internet
-## If so they need their own target groups.
 resource "aws_lb_listener_rule" "graphql" {
   listener_arn = var.graphql_lb_listener_arn
   action {
@@ -48,17 +45,19 @@ resource "aws_autoscaling_attachment" "graphql" {
   autoscaling_group_name = aws_autoscaling_group.graphnode.name
   depends_on = [aws_lb_listener_rule.graphql]
 }
+######
+### Port 8020 ADMIN
+######
 
-resource "aws_lb_target_group" "graph-index" {
-  count = local.build_index_listener
-  name_prefix     = "gn-idx"
+resource "aws_lb_target_group" "graph-rpcadmin" {
+  name_prefix     = "gn-rpc"
   port     = "8020"
   protocol = "HTTP"
   vpc_id   = local.vpc_id
   tags = {
     Name = "graph-index"
   }
-  health_check { ##TODO figure out a better healthcheck maybe getting data from the monitoring/management ports
+  health_check { 
     healthy_threshold   = 3
     unhealthy_threshold = 10
     timeout             = 5
@@ -68,27 +67,71 @@ resource "aws_lb_target_group" "graph-index" {
   }
 }
 
-## TODO ports 8020[JSON-RPC admin], 8030[IndexNode], 8040[Metrics] may need to be exposed to the internet
-## If so they need their own target groups.
 
-resource "aws_lb_listener_rule" "graph-index" {
-  count = local.build_index_listener
-  listener_arn = var.index_lb_listener_arn
+
+resource "aws_lb_listener_rule" "graph-rpcadmin" {
+  listener_arn = var.admin_lb_listener_arn
   action {
-    target_group_arn = aws_lb_target_group.graph-index[0].arn
+    target_group_arn = aws_lb_target_group.graph-rpcadmin.arn
     type = "forward"
   }
   condition {
     host_header {
       values = [
-        aws_route53_record.graph-idx[00].fqdn]
+        aws_route53_record.graph-rpcadmin.fqdn]
     }
   }
 }
 
-resource "aws_autoscaling_attachment" "graph-index" {
-  count = local.build_index_listener
-  alb_target_group_arn   = aws_lb_target_group.graph-index[0].arn
+resource "aws_autoscaling_attachment" "graph-rpcadmin" {
+  alb_target_group_arn   = aws_lb_target_group.graph-rpcadmin.arn
   autoscaling_group_name = aws_autoscaling_group.graphnode.name
-  depends_on = [aws_lb_listener_rule.graph-index]
+  depends_on = [aws_lb_listener_rule.graph-rpcadmin]
 }
+
+######
+### Port 8040 PROM metrics
+######
+
+resource "aws_lb_target_group" "graph-metrics" {
+  name_prefix     = "gn-mtx"
+  port     = "8040"
+  protocol = "HTTP"
+  vpc_id   = local.vpc_id
+  tags = {
+    Name = "graph-index"
+  }
+  health_check {
+    healthy_threshold   = 3
+    unhealthy_threshold = 10
+    timeout             = 5
+    interval            = 10
+    path                = "/"
+    port                = 8040
+  }
+}
+
+
+
+resource "aws_lb_listener_rule" "graph-metrics" {
+  listener_arn = var.admin_lb_listener_arn
+  action {
+    target_group_arn = aws_lb_target_group.graph-metrics.arn
+    type = "forward"
+  }
+  condition {
+    host_header {
+      values = [
+        aws_route53_record.graph-metrics.fqdn]
+    }
+  }
+}
+
+resource "aws_autoscaling_attachment" "graph-metrics" {
+  alb_target_group_arn   = aws_lb_target_group.graph-metrics.arn
+  autoscaling_group_name = aws_autoscaling_group.graphnode.name
+  depends_on = [aws_lb_listener_rule.graph-metrics]
+}
+
+
+
