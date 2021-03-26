@@ -23,26 +23,37 @@ resource "aws_iam_instance_profile" "graphnode" {
   role        = aws_iam_role.instance_role.name
 }
 
-data "aws_iam_policy_document" "graphnode-ssm-parmas" {
-  ### maybe you needed access to your parameters
+data "aws_iam_policy_document" "graphnode_instance_policy"{
   statement {
+    sid = "cloudwatchlogs"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogStreams"
+    ]
+  ##TODO tighten resource
+    resources = ["*"]
+  }
+  statement {
+    sid = "ssmdescribe"
     actions = [
       "ssm:DescribeParameters"
     ]
     resources = [
-    "*"]
+      "*"]
   }
   statement {
+    sid ="getethnode"
     actions = [
       "ssm:GetParameters",
     ]
     resources = ["arn:aws:ssm:${local.region}:${data.aws_caller_identity.this.account_id}:parameter/${trim(local.eth_node_ssm_name, "/")}"]
   }
-}
 
-resource "aws_iam_policy" "graph-node-ecs" {
+}
+resource "aws_iam_policy" "graphnode-instance" {
   name_prefix   = "graphnode"
-  policy = data.aws_iam_policy_document.graphnode-ssm-parmas.json
+  policy = data.aws_iam_policy_document.graphnode_instance_policy.json
 }
 
 
@@ -50,8 +61,8 @@ resource "aws_iam_role_policy_attachment" "graphnode_ssm_agent" {
   role       = aws_iam_role.instance_role.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
-resource "aws_iam_role_policy_attachment" "graph_node_ecs" {
-  policy_arn = aws_iam_policy.graph-node-ecs.arn
+resource "aws_iam_role_policy_attachment" "graphnode-instance" {
+  policy_arn = aws_iam_policy.graphnode-instance.arn
   role = aws_iam_role.instance_role.id
 }
 
@@ -117,6 +128,10 @@ data "template_file" "userdata" {
     postgres_pass = aws_ssm_parameter.db_password.value
     postgres_db = local.use_rds ? module.rds[0].this_db_instance_name : "graph-node"
     network = var.network
+    dockerfile = templatefile("${path.module}/templates/docker_compose.yml.template", {
+      region = local.region
+      log_group = aws_cloudwatch_log_group.graphnode.name
+    })
   }
 }
 
