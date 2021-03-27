@@ -55,7 +55,7 @@ resource "aws_lb_target_group" "graph-rpcadmin" {
   protocol = "HTTP"
   vpc_id   = local.vpc_id
   tags = {
-    Name = "graph-index"
+    Name = "${var.app_name}-rpcadmin"
   }
   health_check { 
     healthy_threshold   = 3
@@ -99,7 +99,7 @@ resource "aws_lb_target_group" "graph-metrics" {
   protocol = "HTTP"
   vpc_id   = local.vpc_id
   tags = {
-    Name = "graph-index"
+    Name = "${var.app_name}-metrics"
   }
   health_check {
     healthy_threshold   = 3
