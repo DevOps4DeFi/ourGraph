@@ -38,11 +38,6 @@ resource "aws_lb_listener_rule" "graphql" {
         aws_route53_record.graphql.fqdn]
     }
   }
-  condition {
-    path_pattern {
-      values = ["/subgraphs/*"]
-    }
-  }
 }
 
 resource "aws_autoscaling_attachment" "graphql" {
@@ -125,14 +120,9 @@ resource "aws_lb_listener_rule" "graph-health" {
     type = "forward"
   }
   condition {
-    path_pattern {
-      values = ["/index-node/*"]
-    }
-  }
-  condition {
     host_header {
       values = [
-        aws_route53_record.graphql.fqdn]
+        aws_route53_record.graph-health.fqdn]
     }
   }
 }
