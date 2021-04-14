@@ -1,6 +1,3 @@
-## Note, to make things understandable, all code uses locals
-## All variables should be mapped to locals in vars_to_locals.tf
-## Other locals can go here too, or in-line with code when it makes sense
 variable "ethnode_url_ssm_parameter_name" {
   type        = string
   description = "the name of an ssm parameter that holds the URL of the ethnode we will use"
@@ -33,6 +30,26 @@ variable "vpc_id" {
   default     = null
   description = "The VPC to deploy into, if null use default vpc."
 }
+variable "rds_instance_type" {
+  type = string
+  default = null
+  description = "Specify an instance type like db.m5.large and instance size to use a separate rds db"
+}
+variable "rds_storage_size" {
+  type = number
+  default = null
+  description = "Max size in GB the rds db can grow to, if not specified use docker local postgres"
+}
+variable "rds_monitoring_role_arn" {
+  type = string
+  description = "the arn of an rds monitoring role if rds is in use, if none is provided, we will try to create one"
+  default = null
+}
+variable "network" {
+  type = string
+  description = "mainnet for eth, bsc for bsc"
+  default = "mainnet"
+}
 ##TODO add support for private subents
 variable "asg_details" {
   type = object({ instance_type = string, min_nodes = number, desired_nodes = number, max_nodes = number, storage_size_gb = number })
@@ -45,16 +62,31 @@ variable "asg_details" {
   }
   description = "How many of which instance type for the autoscailing group.  Defaults to 1 t2.micro for free tier."
 }
-variable "subgraph_github_repos" {
-  type = list(string)
-  description = "A list of http paths to one or more subgraph repos like [\"https:/https://github.com/Badger-Finance/badger-subgraph\"]"
-}
 
-variable "lb_https_listener_arn" {
+
+variable "graphql_lb_listener_arn" {
   type=string
-  description = "The arn to an https alb listener that will be used."
+  description = "The arn to an https alb listener that will be used for graphql requests."
 }
-variable "lb_name" {
+variable "admin_lb_listener_arn" {
+  type=string
+  description = "The arn to an https alb listener that will be used to control the indexer (recommend private)."
+  default = null
+}
+variable "graph_lb_name" {
   type=string
   description = "The name of the  alb running the specified listener"
+}
+
+variable "index_lb_name" {
+  type=string
+  description = "The name of the  alb running the specified listener"
+}
+
+variable "tags" {
+  default = {}
+}
+
+variable "ssm_root" {
+  default = "/DevOps4DeFi"
 }
