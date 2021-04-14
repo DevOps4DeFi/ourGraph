@@ -42,6 +42,7 @@ resource "aws_lb_listener_rule" "graphql" {
     path_pattern {
       values = ["/subgraphs/*"]
     }
+  }
 }
 
 resource "aws_autoscaling_attachment" "graphql" {
