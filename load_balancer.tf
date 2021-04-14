@@ -125,7 +125,7 @@ resource "aws_lb_listener_rule" "graph-health" {
     }
     host_header {
       values = [
-        aws_route53_record.graph-metrics.fqdn]
+        aws_route53_record.graphql.fqdn]
     }
   }
 }
