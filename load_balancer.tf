@@ -121,8 +121,11 @@ resource "aws_lb_listener_rule" "graph-health" {
   }
   condition {
     path_pattern {
-      values = ["/index-node/*"]
+      values = [
+        "/index-node/*"]
     }
+  }
+  condition {
     host_header {
       values = [
         aws_route53_record.graphql.fqdn]
