@@ -42,7 +42,7 @@ resource "aws_route53_record" "graph-health" {
   zone_id = data.aws_route53_zone.rootzone.zone_id
   alias {
     evaluate_target_health = false
-    name = data.aws_lb.index_alb.dns_name
-    zone_id = data.aws_lb.index_alb.zone_id
+    name = data.aws_lb.graph_alb.dns_name
+    zone_id = data.aws_lb.graph_alb.zone_id
   }
 }
