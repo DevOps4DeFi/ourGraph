@@ -38,6 +38,10 @@ resource "aws_lb_listener_rule" "graphql" {
         aws_route53_record.graphql.fqdn]
     }
   }
+  condition {
+    path_pattern {
+      values = ["/subgraphs/*"]
+    }
 }
 
 resource "aws_autoscaling_attachment" "graphql" {
@@ -121,8 +125,7 @@ resource "aws_lb_listener_rule" "graph-health" {
   }
   condition {
     path_pattern {
-      values = [
-        "/index-node/*"]
+      values = ["/index-node/*"]
     }
   }
   condition {
